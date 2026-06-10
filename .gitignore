@@ -1,0 +1,50 @@
+# Environment & Configuration
+.env
+.env.local
+.env.*.local
+config/database.php
+
+# Dependencies
+vendor/
+node_modules/
+
+# Logs
+logs/*.log
+error.log
+access.log
+
+# Uploads & Storage
+assets/uploads/*
+!assets/uploads/.gitkeep
+storage/*
+!storage/.gitkeep
+
+# Cache
+.cache/
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.sublime-project
+.sublime-workspace
+
+# OS
+.DS_Store
+desktop.ini
+Thumbs.db
+
+# Temporary Files
+*.tmp
+*.temp
+*.bak
+*.backup
+
+# PHP
+*.phtml
+.phpcs.xml
+.php_cs.cache
