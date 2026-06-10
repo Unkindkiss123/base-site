@@ -1,5 +1,6 @@
 # Enable mod_rewrite
 RewriteEngine On
+RewriteBase /
 
 # Prevent access to sensitive files
 <FilesMatch "\.(env|config|sql|log)$">

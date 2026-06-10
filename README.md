@@ -51,34 +51,6 @@ A complete, production-ready website starter framework built with HTML5, CSS3, B
 - **Database**: MySQL 5.7+ / MariaDB 10.4+
 - **No external frameworks** - Clean, maintainable code
 
-## Project Structure
-
-```
-base-site/
-├── assets/                 # Static assets
-│   ├── css/               # Stylesheets
-│   ├── js/                # JavaScript files
-│   ├── images/            # Images
-│   └── uploads/           # User uploaded files
-├── config/                # Configuration files
-├── database/              # SQL schema and migrations
-├── includes/              # Reusable PHP includes
-├── templates/             # Reusable template components
-├── pages/                 # Frontend pages
-├── admin/                 # Admin panel
-├── api/                   # API endpoints
-├── logs/                  # Application logs
-├── storage/               # File storage
-├── vendor/                # Third-party libraries
-├── .env.example           # Environment file template
-├── .gitignore             # Git ignore rules
-├── .htaccess              # Apache configuration
-├── index.php              # Frontend entry point
-├── robots.txt             # SEO robots file
-├── sitemap.xml            # XML sitemap
-└── README.md              # This file
-```
-
 ## Installation
 
 ### Requirements
@@ -91,7 +63,7 @@ base-site/
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/base-site.git
+   git clone https://github.com/Unkindkiss123/base-site.git
    cd base-site
    ```
 
@@ -118,128 +90,52 @@ base-site/
    - Admin: `http://localhost/base-site/admin`
    - Default credentials: `admin@example.com` / `Password123!`
 
-## Configuration
+## Project Structure
 
-Edit `.env` file for:
-- Database connection
-- SMTP/Email settings
-- Security settings
-- Upload limits
-- Rate limiting
+```
+base-site/
+├── assets/                # Static assets
+│   ├── css/              # Stylesheets
+│   ├── js/               # JavaScript
+│   ├── images/           # Images
+│   └── uploads/          # User uploads
+├── config/               # Configuration
+├── database/             # SQL schema
+├── includes/             # Reusable includes
+├── templates/            # Template components
+├── pages/                # Frontend pages
+├── admin/                # Admin panel
+├── api/                  # API endpoints
+├── logs/                 # Application logs
+├── storage/              # File storage
+├── vendor/               # Libraries
+├── .env.example          # Environment template
+├── .htaccess             # Apache config
+├── index.php             # Frontend entry
+├── robots.txt            # SEO robots
+└── sitemap.xml           # XML sitemap
+```
 
 ## Admin Panel
 
-### Access
-- URL: `/admin/login.php`
-- Manage all content from one place
-
-### Features
-- Dashboard with statistics
-- Content management (CRUD operations)
-- Media management with validation
-- User management with role-based access
-- Settings configuration
-- Activity logging
-- Password reset functionality
-
-### User Roles
-- **Super Admin**: Full access to everything
-- **Admin**: Content and user management
-- **Editor**: Content creation and editing only
-
-## API Endpoints
-
-RESTful API endpoints for content:
-
-- `POST /api/contact.php` - Submit contact form
-- `GET /api/services.php` - Get all services
-- `GET /api/blog.php` - Get blog posts
-- `GET /api/gallery.php` - Get gallery images
+- **Access**: `/admin/login.php`
+- **Manage**: Content, users, media, settings
+- **Roles**: Super Admin, Admin, Editor
 
 ## Security Features
 
-✅ Prepared statements (PDO)  
-✅ CSRF token validation  
-✅ XSS protection (output escaping)  
-✅ SQL injection prevention  
-✅ Secure password hashing (password_hash)  
-✅ Session regeneration  
-✅ Secure session cookies  
-✅ Content Security Policy  
-✅ Security headers  
-✅ Rate limiting  
-✅ Brute force protection  
-✅ File upload validation  
-✅ MIME type checking  
-✅ Activity logging  
-✅ Error logging  
-
-## SEO Optimization
-
-✅ Meta titles and descriptions  
-✅ Open Graph tags  
-✅ Twitter cards  
-✅ Canonical URLs  
-✅ XML sitemap  
-✅ Robots.txt  
-✅ Structured data (Schema.org)  
-✅ Breadcrumb navigation  
-✅ Mobile-friendly design  
-
-## Performance
-
-- Lazy loading images
-- Browser caching enabled
-- GZIP compression
-- Optimized database queries
-- Asset versioning
-- Target Lighthouse score: 90+
-
-## Customization
-
-### Branding
-1. Edit site name in `.env`
-2. Replace logo in `/assets/images/`
-3. Update colors in `/assets/css/custom.css`
-4. Update favicon in `/includes/head.php`
-
-### Pages
-Add new pages by:
-1. Creating PHP file in `/pages/`
-2. Using template includes from `/templates/`
-3. Add navigation link in `/includes/navigation.php`
-
-### Database
-Extend database by:
-1. Modifying schema in `/database/schema.sql`
-2. Creating migration files
-3. Updating ORM methods
-
-## Maintenance
-
-- Regular database backups
-- Monitor error logs in `/logs/`
-- Review activity logs in admin panel
-- Keep PHP and dependencies updated
-- Regular security audits
-
-## Support & Documentation
-
-Detailed documentation files:
-- `docs/INSTALLATION.md` - Full installation guide
-- `docs/DEPLOYMENT.md` - Production deployment
-- `docs/SECURITY.md` - Security best practices
-- `docs/API.md` - API documentation
-- `docs/DATABASE.md` - Database schema
-
-## License
-
-MIT License - See LICENSE.md
+✅ Prepared statements (PDO)
+✅ CSRF protection
+✅ XSS prevention
+✅ SQL injection prevention
+✅ Secure password hashing
+✅ Session management
+✅ Security headers
+✅ Rate limiting
+✅ Activity logging
 
 ## Version
 
 **v1.0.0** - Initial Release
-
----
 
 Built with ❤️ for modern web development
