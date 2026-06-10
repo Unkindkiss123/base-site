@@ -1,0 +1,27 @@
+{
+  "name": "base-site",
+  "version": "1.0.0",
+  "description": "Professional website template",
+  "main": "index.js",
+  "scripts": {
+    "dev": "webpack --mode development",
+    "build": "webpack --mode production",
+    "watch": "webpack --watch"
+  },
+  "keywords": [
+    "website",
+    "template",
+    "bootstrap",
+    "php"
+  ],
+  "author": "Base Site Team",
+  "license": "MIT",
+  "devDependencies": {
+    "webpack": "^5.88.0",
+    "webpack-cli": "^5.1.4"
+  },
+  "dependencies": {
+    "bootstrap": "^5.3.0",
+    "@fortawesome/fontawesome-free": "^6.4.0"
+  }
+}
