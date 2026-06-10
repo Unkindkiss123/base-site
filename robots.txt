@@ -1,0 +1,30 @@
+<?php
+/**
+ * robots.txt - SEO Robot Configuration
+ * Controls search engine crawler access
+ */
+?>
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /config/
+Disallow: /database/
+Disallow: /logs/
+Disallow: /storage/
+Disallow: /vendor/
+Disallow: /*.php$
+Disallow: /?*
+Disallow: /*?*
+Disallow: /*sort=
+Disallow: /*brand=
+Disallow: /search/
+Disallow: /admin
+Disallow: /private/
+
+# Slow down aggressive crawlers
+User-agent: AhrefsBot
+User-agent: SemrushBot
+Crawl-delay: 10
+
+# Sitemap location
+Sitemap: https://example.com/sitemap.xml
