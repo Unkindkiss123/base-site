@@ -37,56 +37,61 @@ const addToRemoveQueue = (toastId) => {
   toastTimeouts.set(toastId, timeout)
 }
 
+/* ---------- Reducer split into focused handlers for readability ---------- */
+
+function addToastReducer(state, action) {
+  return {
+    ...state,
+    toasts: [action.toast, ...state.toasts].slice(0, TOAST_LIMIT),
+  };
+}
+
+function updateToastReducer(state, action) {
+  return {
+    ...state,
+    toasts: state.toasts.map((t) =>
+      t.id === action.toast.id ? { ...t, ...action.toast } : t),
+  };
+}
+
+function dismissToastReducer(state, action) {
+  const { toastId } = action;
+
+  // ! Side effects ! - schedule removal after the dismiss animation
+  if (toastId) {
+    addToRemoveQueue(toastId);
+  } else {
+    state.toasts.forEach((toast) => {
+      addToRemoveQueue(toast.id);
+    });
+  }
+
+  return {
+    ...state,
+    toasts: state.toasts.map((t) =>
+      t.id === toastId || toastId === undefined
+        ? { ...t, open: false }
+        : t),
+  };
+}
+
+function removeToastReducer(state, action) {
+  if (action.toastId === undefined) {
+    return { ...state, toasts: [] };
+  }
+  return {
+    ...state,
+    toasts: state.toasts.filter((t) => t.id !== action.toastId),
+  };
+}
+
 export const reducer = (state, action) => {
   switch (action.type) {
-    case "ADD_TOAST":
-      return {
-        ...state,
-        toasts: [action.toast, ...state.toasts].slice(0, TOAST_LIMIT),
-      };
-
-    case "UPDATE_TOAST":
-      return {
-        ...state,
-        toasts: state.toasts.map((t) =>
-          t.id === action.toast.id ? { ...t, ...action.toast } : t),
-      };
-
-    case "DISMISS_TOAST": {
-      const { toastId } = action
-
-      // ! Side effects ! - This could be extracted into a dismissToast() action,
-      // but I'll keep it here for simplicity
-      if (toastId) {
-        addToRemoveQueue(toastId)
-      } else {
-        state.toasts.forEach((toast) => {
-          addToRemoveQueue(toast.id)
-        })
-      }
-
-      return {
-        ...state,
-        toasts: state.toasts.map((t) =>
-          t.id === toastId || toastId === undefined
-            ? {
-                ...t,
-                open: false,
-              }
-            : t),
-      };
-    }
-    case "REMOVE_TOAST":
-      if (action.toastId === undefined) {
-        return {
-          ...state,
-          toasts: [],
-        }
-      }
-      return {
-        ...state,
-        toasts: state.toasts.filter((t) => t.id !== action.toastId),
-      };
+    case "ADD_TOAST":     return addToastReducer(state, action);
+    case "UPDATE_TOAST":  return updateToastReducer(state, action);
+    case "DISMISS_TOAST": return dismissToastReducer(state, action);
+    case "REMOVE_TOAST":  return removeToastReducer(state, action);
+    default:              return state;
   }
 }
 
@@ -143,7 +148,9 @@ function useToast() {
         listeners.splice(index, 1)
       }
     };
-  }, [state])
+    // setState from useState is stable; `listeners` is a module-level array.
+    // Subscribe once on mount, unsubscribe on unmount.
+  }, [])
 
   return {
     ...state,
