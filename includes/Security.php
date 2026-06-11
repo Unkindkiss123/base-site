@@ -39,13 +39,13 @@ class Security {
     }
 
     /**
-     * Sanitize input - remove potentially dangerous characters
+     * Sanitize input - trim only. Output escaping is the XSS defense.
      */
     public static function sanitize($data) {
         if (is_array($data)) {
             return array_map([self::class, 'sanitize'], $data);
         }
-        return trim(strip_tags($data));
+        return is_string($data) ? trim($data) : $data;
     }
 
     /**
@@ -91,13 +91,15 @@ class Security {
     }
 
     /**
-     * Get client IP address
+     * Get client IP address.
+     * Only trusts proxy headers when TRUSTED_PROXIES=true is set.
      */
     public static function getClientIP() {
+        $trustProxy = (getenv('TRUSTED_PROXIES') === 'true');
         $ip = '';
-        if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
+        if ($trustProxy && !empty($_SERVER['HTTP_CLIENT_IP'])) {
             $ip = $_SERVER['HTTP_CLIENT_IP'];
-        } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+        } elseif ($trustProxy && !empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
             $ips = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
             $ip = trim($ips[0]);
         } else {
@@ -110,13 +112,18 @@ class Security {
      * Set secure session cookie
      */
     public static function setSessionCookie() {
+        // Strip port from host; for localhost / no-host, leave domain empty
+        $host = preg_replace('/:\d+$/', '', $_SERVER['HTTP_HOST'] ?? '');
+        if ($host === 'localhost' || filter_var($host, FILTER_VALIDATE_IP)) {
+            $host = '';
+        }
         $cookieOptions = [
             'lifetime' => SESSION_LIFETIME,
             'path' => '/',
-            'domain' => $_SERVER['HTTP_HOST'] ?? '',
+            'domain' => $host,
             'secure' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
             'httponly' => true,
-            'samesite' => 'Strict',
+            'samesite' => 'Lax',
         ];
         session_set_cookie_params($cookieOptions);
     }
@@ -132,12 +139,25 @@ class Security {
      * Set security headers
      */
     public static function setSecurityHeaders() {
+        if (headers_sent()) {
+            return;
+        }
         header('X-Content-Type-Options: nosniff');
         header('X-Frame-Options: SAMEORIGIN');
         header('X-XSS-Protection: 1; mode=block');
         header('Referrer-Policy: strict-origin-when-cross-origin');
         header('Permissions-Policy: geolocation=(), microphone=(), camera=()');
-        header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
-        header('Content-Security-Policy: default-src \'self\'; script-src \'self\' \'unsafe-inline\' https://cdn.jsdelivr.net; style-src \'self\' \'unsafe-inline\' https://cdn.jsdelivr.net; img-src \'self\' data: https:; font-src \'self\' https://fonts.googleapis.com');
+        // HSTS only over HTTPS to avoid pinning a broken state on dev
+        if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
+            header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
+        }
+        header(
+            "Content-Security-Policy: default-src 'self'; " .
+            "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cdn.tiny.cloud; " .
+            "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com https://cdn.tiny.cloud; " .
+            "img-src 'self' data: https: blob:; " .
+            "font-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com https://cdnjs.cloudflare.com https://cdn.tiny.cloud data:; " .
+            "connect-src 'self' https://cdn.tiny.cloud https://*.tinymce.com"
+        );
     }
 }

@@ -6,14 +6,9 @@
 
 require_once __DIR__ . '/../config/constants.php';
 require_once __DIR__ . '/Security.php';
+require_once __DIR__ . '/Helper.php'; // ensures session is started + helpers
 
-// Start session if not already started
-if (session_status() === PHP_SESSION_NONE) {
-    Security::setSessionCookie();
-    session_start();
-}
-
-// Set security headers
+// Set security headers (safe if headers already sent — internally guarded)
 Security::setSecurityHeaders();
 
 // Get page variables
@@ -64,6 +59,9 @@ $canonical = $canonical ?? $_SERVER['REQUEST_URI'];
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
     
+    <!-- Theme variables (single file for re-skinning) -->
+    <link rel="stylesheet" href="<?php echo asset('css/theme.css?v=1.0.0'); ?>">
+
     <!-- Custom Styles -->
     <link rel="stylesheet" href="<?php echo asset('css/style.css?v=1.0.0'); ?>">
     <link rel="stylesheet" href="<?php echo asset('css/custom.css?v=1.0.0'); ?>">

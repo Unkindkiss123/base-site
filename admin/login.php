@@ -20,20 +20,26 @@ $message = null;
 $error = false;
 
 if (isPost()) {
-    // Check rate limit
-    if ($rateLimiter->isLimited(5, 15)) {
+    // CSRF check
+    if (!Security::verifyCSRFToken(post('csrf_token', ''))) {
+        $message = 'Invalid request token. Please try again.';
+        $error = true;
+    } elseif ($rateLimiter->isLimited(5, 15)) {
         $message = 'Too many login attempts. Please try again later.';
         $error = true;
     } else {
-        $email = post('email', '');
-        $password = post('password', '');
-        $rememberMe = post('remember_me') === 'on';
-        
+        $email      = post('email', '');
+        $password   = post('password', '');
+        $rememberMe = post('remember_me') === '1';
+
         $result = $auth->login($email, $password, $rememberMe);
-        
-        if ($result['success']) {
+
+        if (!empty($result['success'])) {
             redirect(url('/admin'));
+        } elseif (!empty($result['requires_mfa'])) {
+            redirect(url('/2fa'));
         } else {
+            $rateLimiter->hit();
             $message = $result['message'];
             $error = true;
         }
@@ -107,6 +113,7 @@ if (isPost()) {
                 <?php endif; ?>
                 
                 <form method="POST">
+                    <?php echo Security::getCSRFField(); ?>
                     <div class="mb-3">
                         <label for="email" class="form-label">Email Address</label>
                         <input type="email" class="form-control" id="email" name="email" required autofocus>
@@ -116,14 +123,12 @@ if (isPost()) {
                         <label for="password" class="form-label">Password</label>
                         <input type="password" class="form-control" id="password" name="password" required>
                     </div>
-                    
+
                     <div class="mb-3 form-check">
-                        <input type="checkbox" class="form-check-input" id="remember_me" name="remember_me">
-                        <label class="form-check-label" for="remember_me">
-                            Remember me
-                        </label>
+                        <input class="form-check-input" type="checkbox" id="remember_me" name="remember_me" value="1">
+                        <label class="form-check-label" for="remember_me">Remember me for 30 days</label>
                     </div>
-                    
+
                     <button type="submit" class="btn btn-primary btn-login w-100">
                         <i class="fas fa-sign-in-alt"></i> Login
                     </button>
@@ -132,7 +137,9 @@ if (isPost()) {
                 <hr>
                 
                 <p class="text-center text-muted small mb-0">
-                    <a href="<?php echo url('/pages/contact.php'); ?>" class="text-decoration-none">Need help?</a>
+                    <a href="<?php echo url('/forgot-password'); ?>" class="text-decoration-none">Forgot your password?</a>
+                    &middot;
+                    <a href="<?php echo url('/contact'); ?>" class="text-decoration-none">Need help?</a>
                 </p>
             </div>
         </div>

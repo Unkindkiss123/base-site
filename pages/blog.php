@@ -46,22 +46,26 @@ include __DIR__ . '/../includes/navigation.php';
             <div class="col-lg-8">
                 <?php if (!empty($posts)): ?>
                     <?php foreach ($posts as $post): ?>
-                        <article class="blog-card">
-                            <img src="<?php echo e($post['featured_image']); ?>" alt="<?php echo e($post['title']); ?>" class="blog-card-image" loading="lazy">
-                            <div class="blog-card-body">
-                                <div class="blog-card-meta">
-                                    <i class="fas fa-calendar"></i> <?php echo formatDate($post['published_at'], 'M d, Y'); ?>
+                        <article class="blog-card card mb-4">
+                            <?php if (!empty($post['featured_image'])): ?>
+                                <img src="<?php echo e($post['featured_image']); ?>" alt="" class="card-img-top blog-card-image" loading="lazy">
+                            <?php endif; ?>
+                            <div class="blog-card-body card-body">
+                                <div class="blog-card-meta text-muted small mb-2">
+                                    <i class="fas fa-calendar" aria-hidden="true"></i>
+                                    <time datetime="<?php echo e($post['published_at']); ?>"><?php echo e(formatDate($post['published_at'], 'M d, Y')); ?></time>
                                 </div>
-                                <h3 class="blog-card-title"><?php echo e($post['title']); ?></h3>
-                                <p class="blog-card-excerpt"><?php echo e(truncate($post['excerpt'], 150)); ?></p>
-                                <a href="<?php echo url('/pages/blog-post.php?slug=' . $post['slug']); ?>" class="blog-card-link">
-                                    Read More <i class="fas fa-arrow-right"></i>
+                                <h2 class="blog-card-title h4 card-title"><?php echo e($post['title']); ?></h2>
+                                <p class="blog-card-excerpt"><?php echo e(truncate($post['excerpt'] ?? '', 180)); ?></p>
+                                <a href="<?php echo url('/blog/' . $post['slug']); ?>" class="blog-card-link">
+                                    <span>Read more</span>
+                                    <i class="fas fa-arrow-right" aria-hidden="true"></i>
                                 </a>
                             </div>
                         </article>
                     <?php endforeach; ?>
                 <?php else: ?>
-                    <p class="text-center text-muted">No posts found.</p>
+                    <p class="text-center text-muted">No posts yet.</p>
                 <?php endif; ?>
             </div>
             

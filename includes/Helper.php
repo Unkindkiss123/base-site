@@ -7,6 +7,12 @@
 require_once __DIR__ . '/../config/constants.php';
 require_once __DIR__ . '/Security.php';
 
+// Always ensure a session is started before any code reads $_SESSION.
+if (session_status() === PHP_SESSION_NONE) {
+    Security::setSessionCookie();
+    session_start();
+}
+
 /**
  * Escape output for HTML
  */
@@ -122,11 +128,11 @@ if (!function_exists('isAuthenticated')) {
 }
 
 /**
- * Check if user has role
+ * Check if user has role (matches role slug, not display name)
  */
 if (!function_exists('hasRole')) {
     function hasRole($role) {
-        return isset($_SESSION['user_role']) && $_SESSION['user_role'] === $role;
+        return isset($_SESSION['user_role_name']) && $_SESSION['user_role_name'] === $role;
     }
 }
 
@@ -140,11 +146,60 @@ if (!function_exists('hasPermission')) {
 }
 
 /**
- * Get authenticated user
+ * Get authenticated user data (set during login)
  */
 if (!function_exists('getUser')) {
     function getUser() {
-        return $_SESSION['user'] ?? null;
+        return $_SESSION['user_data'] ?? null;
+    }
+}
+
+/**
+ * Get a setting value from the DB-backed settings table (cached per request)
+ */
+if (!function_exists('setting')) {
+    function setting($key, $default = '') {
+        static $cache = null;
+        if ($cache === null) {
+            $cache = [];
+            try {
+                $db = Database::getInstance();
+                $db->prepare('SELECT `key`, `value` FROM settings');
+                foreach ($db->fetchAll() as $row) {
+                    $cache[$row['key']] = $row['value'];
+                }
+            } catch (Throwable $e) {
+                // Table may not exist during install — fail soft
+                $cache = [];
+            }
+        }
+        return $cache[$key] ?? $default;
+    }
+}
+
+/**
+ * Render admin-authored HTML safely. Allow a sensible subset of tags;
+ * strip <script>, on* attributes, javascript: URIs, <iframe>, <object>, etc.
+ */
+if (!function_exists('safe_html')) {
+    function safe_html($html) {
+        if ($html === null || $html === '') return '';
+        // 1. Drop script/style/iframe/object/embed/form/svg-as-script wholesale
+        $html = preg_replace('#<\s*(script|style|iframe|object|embed|form|link|meta)\b[^>]*>.*?<\s*/\s*\1\s*>#is', '', $html);
+        $html = preg_replace('#<\s*(script|style|iframe|object|embed|link|meta)\b[^>]*/?>#i', '', $html);
+        // 2. Strip on* event attributes
+        $html = preg_replace('#\s+on[a-z]+\s*=\s*("[^"]*"|\'[^\']*\'|[^\s>]+)#i', '', $html);
+        // 3. Neutralize javascript: / data: (non-image) URIs in href/src
+        $html = preg_replace_callback(
+            '#(\s(?:href|src|action|formaction)\s*=\s*)("|\')(\s*(?:javascript|vbscript|data)(?!:image/[a-z]+;)[^"\']*)\2#i',
+            fn($m) => $m[1] . $m[2] . '#' . $m[2],
+            $html
+        );
+        // 4. Whitelist tags (allow only this list)
+        $allowed = '<p><br><strong><b><em><i><u><s><a><ul><ol><li><blockquote><code><pre>'
+                 . '<h1><h2><h3><h4><h5><h6><hr><img><figure><figcaption>'
+                 . '<table><thead><tbody><tr><th><td><span><div>';
+        return strip_tags($html, $allowed);
     }
 }
 

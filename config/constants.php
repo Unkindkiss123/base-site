@@ -4,6 +4,9 @@
  * Global application constants
  */
 
+// Load .env first so getenv() returns real values
+require_once __DIR__ . '/../includes/env.php';
+
 // Application
 define('APP_NAME', getenv('APP_NAME') ?: 'Base Site');
 define('APP_URL', getenv('APP_URL') ?: 'http://localhost');

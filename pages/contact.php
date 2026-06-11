@@ -14,46 +14,53 @@ $pageTitle = 'Contact Us - ' . APP_NAME;
 $pageDescription = 'Get in touch with us for inquiries and support';
 
 $message = null;
+$errors = [];
 $db = Database::getInstance();
 
 if (isPost()) {
-    $name = Security::sanitize(post('name', ''));
-    $email = Security::sanitize(post('email', ''));
-    $phone = Security::sanitize(post('phone', ''));
-    $subject = Security::sanitize(post('subject', ''));
-    $message_text = Security::sanitize(post('message', ''));
-    
-    $validator = new Validator([
-        'name' => $name,
-        'email' => $email,
-        'subject' => $subject,
-        'message' => $message_text
-    ]);
-    
-    $validator->required('name', 'Name')
-              ->required('email', 'Email')
-              ->email('email')
-              ->required('subject', 'Subject')
-              ->required('message', 'Message')
-              ->minLength('message', 10, 'Message');
-    
-    if ($validator->passes()) {
-        $db->prepare(
-            'INSERT INTO leads (name, email, phone, subject, message, source, ip_address, user_agent) 
-             VALUES (:name, :email, :phone, :subject, :message, :source, :ip, :agent)'
-        );
-        $db->bind(':name', $name);
-        $db->bind(':email', $email);
-        $db->bind(':phone', $phone);
-        $db->bind(':subject', $subject);
-        $db->bind(':message', $message_text);
-        $db->bind(':source', 'website');
-        $db->bind(':ip', Security::getClientIP());
-        $db->bind(':agent', $_SERVER['HTTP_USER_AGENT'] ?? '');
-        
-        if ($db->execute()) {
-            flash('success', 'Thank you for your message! We\'ll get back to you soon.');
-            redirect(url('/pages/contact.php'));
+    if (!Security::verifyCSRFToken(post('csrf_token', ''))) {
+        $errors['_form'] = 'Invalid request token. Please refresh and try again.';
+    } else {
+        $name = Security::sanitize(post('name', ''));
+        $email = Security::sanitize(post('email', ''));
+        $phone = Security::sanitize(post('phone', ''));
+        $subject = Security::sanitize(post('subject', ''));
+        $message_text = Security::sanitize(post('message', ''));
+
+        $validator = new Validator([
+            'name' => $name,
+            'email' => $email,
+            'subject' => $subject,
+            'message' => $message_text
+        ]);
+
+        $validator->required('name', 'Name')
+                  ->required('email', 'Email')
+                  ->email('email')
+                  ->required('subject', 'Subject')
+                  ->required('message', 'Message')
+                  ->minLength('message', 10, 'Message');
+
+        if ($validator->passes()) {
+            $db->prepare(
+                'INSERT INTO leads (name, email, phone, subject, message, source, ip_address, user_agent)
+                 VALUES (:name, :email, :phone, :subject, :message, :source, :ip, :agent)'
+            );
+            $db->bind(':name', $name);
+            $db->bind(':email', $email);
+            $db->bind(':phone', $phone);
+            $db->bind(':subject', $subject);
+            $db->bind(':message', $message_text);
+            $db->bind(':source', 'website');
+            $db->bind(':ip', Security::getClientIP());
+            $db->bind(':agent', $_SERVER['HTTP_USER_AGENT'] ?? '');
+
+            if ($db->execute()) {
+                flash('success', 'Thank you for your message! We\'ll get back to you soon.');
+                redirect(url('/contact'));
+            }
+        } else {
+            $errors = $validator->getErrors();
         }
     }
 }
@@ -87,32 +94,42 @@ include __DIR__ . '/../includes/navigation.php';
                 <?php endif; ?>
                 
                 <h3 class="mb-4">Send us a Message</h3>
+                <?php if (!empty($errors)): ?>
+                    <div class="alert alert-danger">
+                        <strong>Please fix the following:</strong>
+                        <ul class="mb-0">
+                            <?php foreach ($errors as $err): ?>
+                                <li><?php echo e($err); ?></li>
+                            <?php endforeach; ?>
+                        </ul>
+                    </div>
+                <?php endif; ?>
                 <form method="POST" class="contact-form needs-validation">
                     <?php echo Security::getCSRFField(); ?>
                     
                     <div class="form-group">
                         <label for="name" class="form-label">Name</label>
-                        <input type="text" class="form-control" id="name" name="name" required>
+                        <input type="text" class="form-control" id="name" name="name" value="<?php echo e(post('name','')); ?>" required>
                     </div>
                     
                     <div class="form-group">
                         <label for="email" class="form-label">Email</label>
-                        <input type="email" class="form-control" id="email" name="email" required>
+                        <input type="email" class="form-control" id="email" name="email" value="<?php echo e(post('email','')); ?>" required>
                     </div>
                     
                     <div class="form-group">
                         <label for="phone" class="form-label">Phone</label>
-                        <input type="tel" class="form-control" id="phone" name="phone">
+                        <input type="tel" class="form-control" id="phone" name="phone" value="<?php echo e(post('phone','')); ?>">
                     </div>
                     
                     <div class="form-group">
                         <label for="subject" class="form-label">Subject</label>
-                        <input type="text" class="form-control" id="subject" name="subject" required>
+                        <input type="text" class="form-control" id="subject" name="subject" value="<?php echo e(post('subject','')); ?>" required>
                     </div>
                     
                     <div class="form-group">
                         <label for="message" class="form-label">Message</label>
-                        <textarea class="form-control" id="message" name="message" rows="5" required></textarea>
+                        <textarea class="form-control" id="message" name="message" rows="5" required><?php echo e(post('message','')); ?></textarea>
                     </div>
                     
                     <button type="submit" class="btn btn-primary btn-lg">

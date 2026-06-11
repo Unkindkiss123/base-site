@@ -151,7 +151,9 @@ class Database {
     private function __clone() {}
 
     /**
-     * Prevent unserializing
+     * Prevent unserialization (PHP 8.2+ requires public visibility on __wakeup)
      */
-    private function __wakeup() {}
+    public function __wakeup() {
+        throw new Exception('Cannot unserialize singleton');
+    }
 }
