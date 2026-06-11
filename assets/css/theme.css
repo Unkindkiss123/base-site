@@ -1,0 +1,76 @@
+/**
+ * theme.css
+ * One file to customize the entire visual identity of the site.
+ * Override these CSS variables to re-skin without touching component CSS.
+ */
+:root {
+    /* Brand */
+    --brand-primary: #007bff;
+    --brand-primary-dark: #0056b3;
+    --brand-accent: #ffb300;
+
+    /* Surfaces */
+    --surface-bg: #ffffff;
+    --surface-muted: #f8f9fa;
+    --surface-dark: #343a40;
+
+    /* Text */
+    --text-default: #212529;
+    --text-muted: #6c757d;
+    --text-on-brand: #ffffff;
+
+    /* Radii & shadows */
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+    /* Hero gradient (uses brand colors) */
+    --hero-gradient: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary-dark) 100%);
+
+    /* Bootstrap override */
+    --bs-primary: var(--brand-primary);
+    --bs-link-color: var(--brand-primary);
+    --bs-link-hover-color: var(--brand-primary-dark);
+}
+
+/* Make Bootstrap primary buttons follow brand */
+.btn-primary {
+    background-color: var(--brand-primary);
+    border-color: var(--brand-primary);
+}
+.btn-primary:hover, .btn-primary:focus {
+    background-color: var(--brand-primary-dark);
+    border-color: var(--brand-primary-dark);
+}
+.text-primary { color: var(--brand-primary) !important; }
+.bg-primary { background-color: var(--brand-primary) !important; }
+
+/* Hero default */
+section.hero {
+    background: var(--hero-gradient);
+    color: var(--text-on-brand);
+    padding: 6rem 0;
+}
+
+/* Cards */
+.feature-card, .stat-card {
+    background: var(--surface-bg);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-card);
+    padding: 1.5rem;
+}
+
+/* Skip-link for a11y */
+.skip-link {
+    position: absolute;
+    left: -10000px;
+    top: auto;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}
+.skip-link:focus {
+    position: static;
+    width: auto;
+    height: auto;
+}

@@ -43,10 +43,12 @@ class Logger {
      * Log message
      */
     public function log($level, $message, $context = []) {
+        $level = strtoupper($level);
+        $configLevel = strtoupper((string)LOG_LEVEL);
         $levelValue = $this->levels[$level] ?? 0;
-        $configLevelValue = $this->levels[LOG_LEVEL] ?? 1;
+        $configLevelValue = $this->levels[$configLevel] ?? 1;
 
-        if ($levelValue < $configLevelValue && LOG_LEVEL !== 'DEBUG') {
+        if ($levelValue < $configLevelValue) {
             return;
         }
 

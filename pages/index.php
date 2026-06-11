@@ -4,14 +4,14 @@
  * Homepage
  */
 
-require_once __DIR__ . '/config/constants.php';
-require_once __DIR__ . '/includes/Helper.php';
+require_once __DIR__ . '/../config/constants.php';
+require_once __DIR__ . '/../includes/Helper.php';
 
 $pageTitle = APP_NAME . ' - Professional Website Template';
 $pageDescription = 'Welcome to our professional website template built with HTML5, CSS3, Bootstrap 5, and PHP 8.3+';
 
-include __DIR__ . '/includes/head.php';
-include __DIR__ . '/includes/navigation.php';
+include __DIR__ . '/../includes/head.php';
+include __DIR__ . '/../includes/navigation.php';
 ?>
 
 <!-- Hero Section -->
@@ -19,8 +19,8 @@ include __DIR__ . '/includes/navigation.php';
     <div class="container text-center">
         <h1>Welcome to <?php echo e(APP_NAME); ?></h1>
         <p class="lead">Professional Website Template for Modern Web Development</p>
-        <a href="<?php echo url('/pages/services.php'); ?>" class="btn btn-light btn-lg me-2">Get Started</a>
-        <a href="<?php echo url('/pages/contact.php'); ?>" class="btn btn-outline-light btn-lg">Contact Us</a>
+        <a href="<?php echo url('/services'); ?>" class="btn btn-light btn-lg me-2">Get Started</a>
+        <a href="<?php echo url('/contact'); ?>" class="btn btn-outline-light btn-lg">Contact Us</a>
     </div>
 </section>
 
@@ -64,7 +64,7 @@ include __DIR__ . '/includes/navigation.php';
                     <div class="card-body">
                         <h4 class="card-title">Web Design</h4>
                         <p class="card-text">Beautiful, modern designs that engage your audience and convert visitors into customers.</p>
-                        <a href="<?php echo url('/pages/services.php'); ?>" class="btn btn-primary">Learn More</a>
+                        <a href="<?php echo url('/services'); ?>" class="btn btn-primary">Learn More</a>
                     </div>
                 </div>
             </div>
@@ -73,7 +73,7 @@ include __DIR__ . '/includes/navigation.php';
                     <div class="card-body">
                         <h4 class="card-title">Web Development</h4>
                         <p class="card-text">Custom solutions built with latest technologies for optimal performance and scalability.</p>
-                        <a href="<?php echo url('/pages/services.php'); ?>" class="btn btn-primary">Learn More</a>
+                        <a href="<?php echo url('/services'); ?>" class="btn btn-primary">Learn More</a>
                     </div>
                 </div>
             </div>
@@ -86,8 +86,8 @@ include __DIR__ . '/includes/navigation.php';
     <div class="container text-center">
         <h2>Ready to Get Started?</h2>
         <p>Contact us today to discuss your project needs</p>
-        <a href="<?php echo url('/pages/contact.php'); ?>" class="btn btn-light btn-lg">Contact Us Today</a>
+        <a href="<?php echo url('/contact'); ?>" class="btn btn-light btn-lg">Contact Us Today</a>
     </div>
 </section>
 
-<?php include __DIR__ . '/includes/footer.php'; ?>
+<?php include __DIR__ . '/../includes/footer.php'; ?>

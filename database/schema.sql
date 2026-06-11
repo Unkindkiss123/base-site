@@ -63,6 +63,8 @@ CREATE TABLE `users` (
     `role_id` INT NOT NULL DEFAULT 3,
     `status` ENUM('active', 'inactive', 'suspended') DEFAULT 'active',
     `email_verified_at` TIMESTAMP NULL,
+    `mfa_secret` VARCHAR(64) NULL,
+    `mfa_enabled` TINYINT(1) NOT NULL DEFAULT 0,
     `last_login_at` TIMESTAMP NULL,
     `last_login_ip` VARCHAR(45),
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -72,6 +74,36 @@ CREATE TABLE `users` (
     INDEX `idx_username` (`username`),
     INDEX `idx_role_id` (`role_id`),
     INDEX `idx_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================
+-- REMEMBER ME TOKENS TABLE
+-- ============================================
+CREATE TABLE `remember_tokens` (
+    `id` INT PRIMARY KEY AUTO_INCREMENT,
+    `user_id` INT NOT NULL,
+    `selector` VARCHAR(32) UNIQUE NOT NULL,
+    `validator_hash` VARCHAR(255) NOT NULL,
+    `expires_at` TIMESTAMP NOT NULL,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+    INDEX `idx_selector` (`selector`),
+    INDEX `idx_user_id` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================
+-- EMAIL VERIFICATIONS TABLE
+-- ============================================
+CREATE TABLE `email_verifications` (
+    `id` INT PRIMARY KEY AUTO_INCREMENT,
+    `user_id` INT NOT NULL,
+    `token_hash` VARCHAR(255) UNIQUE NOT NULL,
+    `expires_at` TIMESTAMP NOT NULL,
+    `used_at` TIMESTAMP NULL,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+    INDEX `idx_token_hash` (`token_hash`),
+    INDEX `idx_user_id` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================
@@ -355,7 +387,7 @@ INSERT INTO `users` (`email`, `username`, `password`, `first_name`, `last_name`,
 VALUES (
     'admin@example.com',
     'admin',
-    '$2y$12$G8C3bE4Xx8/cZ9KvI8E5Oe2L8V3xR6W9P4Q5S6T7U8V9W0X1Y2Z3',
+    '$2y$12$K.HVUFNaxRiR.dsai9eAvuwG9eGTwNy4urefWwQdi35mqFl4XU2eK',
     'Admin',
     'User',
     (SELECT id FROM roles WHERE name='super_admin'),
@@ -387,6 +419,23 @@ INSERT INTO `categories` (`name`, `slug`, `display_order`) VALUES
 ('Technology', 'technology', 2),
 ('Business', 'business', 3),
 ('Lifestyle', 'lifestyle', 4);
+
+-- ============================================
+-- INSERT DEFAULT SERVICES (drives /services page)
+-- ============================================
+INSERT INTO `services` (`title`, `slug`, `description`, `icon`, `display_order`, `is_featured`, `is_active`) VALUES
+('Web Design', 'web-design', 'Custom, responsive web designs that capture your brand essence and engage your audience.', 'fa-paint-brush', 1, 1, 1),
+('Web Development', 'web-development', 'Full-stack development services using modern technologies and best practices.', 'fa-code', 2, 1, 1),
+('Mobile Development', 'mobile-development', 'Native and cross-platform mobile applications for iOS and Android.', 'fa-mobile-alt', 3, 0, 1),
+('SEO & Marketing', 'seo-marketing', 'Digital marketing strategies to increase your online visibility and traffic.', 'fa-chart-line', 4, 0, 1);
+
+-- ============================================
+-- INSERT DEFAULT ABOUT PAGE
+-- ============================================
+INSERT INTO `pages` (`title`, `slug`, `content`, `excerpt`, `status`, `published_at`) VALUES
+('About Us', 'about',
+'We are a team of passionate web professionals dedicated to creating exceptional digital experiences. With years of experience in web design and development, we have helped businesses of all sizes achieve their online goals.\n\nOur commitment to quality, innovation, and customer satisfaction drives everything we do.',
+'Our story, mission, and values.', 'published', NOW());
 
 -- ============================================
 -- FINAL STATEMENTS

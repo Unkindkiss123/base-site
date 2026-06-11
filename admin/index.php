@@ -1,201 +1,82 @@
 <?php
 /**
- * admin/index.php
- * Admin Dashboard
+ * admin/index.php — Admin Dashboard
  */
-
-require_once __DIR__ . '/../config/constants.php';
-require_once __DIR__ . '/../includes/Helper.php';
-require_once __DIR__ . '/../includes/Auth.php';
+require_once __DIR__ . '/../includes/admin_layout.php';
 require_once __DIR__ . '/../config/database.php';
 
-// Check authentication
-if (!isAuthenticated()) {
-    redirect(url('/admin/login.php'));
-}
+admin_require_auth();
 
 $db = Database::getInstance();
-user_data = getUser();
 
-// Get statistics
-$db->prepare('SELECT COUNT(*) as count FROM users');
-$userCount = $db->fetch()['count'];
+$db->prepare('SELECT COUNT(*) AS c FROM users');         $userCount = (int)($db->fetch()['c'] ?? 0);
+$db->prepare("SELECT COUNT(*) AS c FROM blog_posts WHERE status='published'"); $postCount = (int)($db->fetch()['c'] ?? 0);
+$db->prepare("SELECT COUNT(*) AS c FROM pages WHERE status='published'");      $pageCount = (int)($db->fetch()['c'] ?? 0);
+$db->prepare("SELECT COUNT(*) AS c FROM leads WHERE status='new'");            $leadCount = (int)($db->fetch()['c'] ?? 0);
 
-$db->prepare('SELECT COUNT(*) as count FROM blog_posts WHERE status = "published"');
-$postCount = $db->fetch()['count'];
+$db->prepare('SELECT id, name, email, subject, status, created_at FROM leads ORDER BY created_at DESC LIMIT 5');
+$recentLeads = $db->fetchAll();
 
-$db->prepare('SELECT COUNT(*) as count FROM leads WHERE status = "new"');
-$leadCount = $db->fetch()['count'];
-
-$db->prepare('SELECT COUNT(*) as count FROM pages WHERE status = "published"');
-$pageCount = $db->fetch()['count'];
-
+admin_layout_start('Dashboard', 'dashboard');
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Admin <?php echo e(APP_NAME); ?></title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        body {
-            background-color: #f8f9fa;
-        }
-        .sidebar {
-            background-color: #343a40;
-            min-height: 100vh;
-            padding: 20px 0;
-        }
-        .sidebar a {
-            color: #adb5bd;
-            text-decoration: none;
-            padding: 10px 20px;
-            display: block;
-            transition: all 0.3s ease;
-        }
-        .sidebar a:hover,
-        .sidebar a.active {
-            color: #fff;
-            background-color: #007bff;
-            padding-left: 30px;
-        }
-        .stat-card {
-            background: white;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-        }
-        .stat-number {
-            font-size: 2.5rem;
-            font-weight: bold;
-            color: #007bff;
-        }
-        .stat-label {
-            color: #6c757d;
-            font-size: 0.9rem;
-        }
-        .stat-icon {
-            font-size: 3rem;
-            color: #e9ecef;
-            text-align: right;
-        }
-    </style>
-</head>
-<body>
-    <div class="container-fluid">
-        <div class="row">
-            <!-- Sidebar -->
-            <div class="col-md-3 sidebar">
-                <h4 class="text-white mb-4 px-3">
-                    <i class="fas fa-tachometer-alt"></i> Admin Panel
-                </h4>
-                <a href="<?php echo url('/admin'); ?>" class="active">
-                    <i class="fas fa-home"></i> Dashboard
-                </a>
-                <a href="<?php echo url('/admin/users.php'); ?>">
-                    <i class="fas fa-users"></i> Users
-                </a>
-                <a href="<?php echo url('/admin/pages.php'); ?>">
-                    <i class="fas fa-file"></i> Pages
-                </a>
-                <a href="<?php echo url('/admin/blog.php'); ?>">
-                    <i class="fas fa-blog"></i> Blog Posts
-                </a>
-                <a href="<?php echo url('/admin/leads.php'); ?>">
-                    <i class="fas fa-envelope"></i> Leads
-                </a>
-                <a href="<?php echo url('/admin/settings.php'); ?>">
-                    <i class="fas fa-cog"></i> Settings
-                </a>
-                <hr class="bg-secondary">
-                <a href="<?php echo url('/admin/logout.php'); ?>">
-                    <i class="fas fa-sign-out-alt"></i> Logout
-                </a>
-            </div>
-            
-            <!-- Main Content -->
-            <div class="col-md-9 p-4">
-                <h1 class="mb-4">Dashboard</h1>
-                <p class="text-muted">Welcome back, <?php echo e($user_data['first_name'] ?? 'User'); ?>!</p>
-                
-                <!-- Statistics -->
-                <div class="row">
-                    <div class="col-md-6 col-lg-3">
-                        <div class="stat-card">
-                            <div class="row align-items-center">
-                                <div class="col">
-                                    <div class="stat-number"><?php echo $userCount; ?></div>
-                                    <div class="stat-label">Total Users</div>
-                                </div>
-                                <div class="col-auto stat-icon">
-                                    <i class="fas fa-users"></i>
-                                </div>
-                            </div>
-                        </div>
+<div class="row g-3 mb-4">
+    <?php
+    $cards = [
+        ['Total Users', $userCount, 'fa-users', '/admin/users'],
+        ['Blog Posts',  $postCount, 'fa-blog',  '/admin/blog'],
+        ['Pages',       $pageCount, 'fa-file',  '/admin/pages'],
+        ['New Leads',   $leadCount, 'fa-envelope', '/admin/leads'],
+    ];
+    foreach ($cards as [$label, $count, $icon, $path]): ?>
+        <div class="col-sm-6 col-lg-3">
+            <a class="text-decoration-none" href="<?php echo url($path); ?>" aria-label="<?php echo e($label . ', ' . $count); ?>">
+                <div class="stat-card d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="stat-number" style="font-size:2rem;font-weight:700;color:var(--brand-primary);"><?php echo (int)$count; ?></div>
+                        <div class="stat-label text-muted"><?php echo e($label); ?></div>
                     </div>
-                    <div class="col-md-6 col-lg-3">
-                        <div class="stat-card">
-                            <div class="row align-items-center">
-                                <div class="col">
-                                    <div class="stat-number"><?php echo $postCount; ?></div>
-                                    <div class="stat-label">Blog Posts</div>
-                                </div>
-                                <div class="col-auto stat-icon">
-                                    <i class="fas fa-blog"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6 col-lg-3">
-                        <div class="stat-card">
-                            <div class="row align-items-center">
-                                <div class="col">
-                                    <div class="stat-number"><?php echo $pageCount; ?></div>
-                                    <div class="stat-label">Pages</div>
-                                </div>
-                                <div class="col-auto stat-icon">
-                                    <i class="fas fa-file"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6 col-lg-3">
-                        <div class="stat-card">
-                            <div class="row align-items-center">
-                                <div class="col">
-                                    <div class="stat-number"><?php echo $leadCount; ?></div>
-                                    <div class="stat-label">New Leads</div>
-                                </div>
-                                <div class="col-auto stat-icon">
-                                    <i class="fas fa-envelope"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <i class="fas <?php echo $icon; ?>" aria-hidden="true" style="font-size:2rem;color:var(--brand-primary);opacity:.25;"></i>
                 </div>
-                
-                <!-- Quick Actions -->
-                <div class="row mt-5">
-                    <div class="col-12">
-                        <h3 class="mb-3">Quick Actions</h3>
-                        <a href="<?php echo url('/admin/pages.php?action=create'); ?>" class="btn btn-primary me-2">
-                            <i class="fas fa-plus"></i> New Page
-                        </a>
-                        <a href="<?php echo url('/admin/blog.php?action=create'); ?>" class="btn btn-primary me-2">
-                            <i class="fas fa-plus"></i> New Post
-                        </a>
-                        <a href="<?php echo url('/admin/users.php?action=create'); ?>" class="btn btn-primary">
-                            <i class="fas fa-plus"></i> New User
-                        </a>
-                    </div>
-                </div>
-            </div>
+            </a>
         </div>
+    <?php endforeach; ?>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-7">
+        <div class="card"><div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="h5 mb-0">Recent leads</h2>
+                <a class="btn btn-sm btn-outline-primary" href="<?php echo url('/admin/leads'); ?>">View all</a>
+            </div>
+            <?php if (empty($recentLeads)): ?>
+                <p class="text-muted mb-0">No leads yet.</p>
+            <?php else: ?>
+                <ul class="list-unstyled mb-0">
+                <?php foreach ($recentLeads as $l): ?>
+                    <li class="d-flex justify-content-between border-bottom py-2">
+                        <span>
+                            <strong><?php echo e($l['name']); ?></strong>
+                            — <span class="text-muted"><?php echo e($l['subject'] ?: 'No subject'); ?></span>
+                        </span>
+                        <span class="text-muted small"><?php echo e(formatDate($l['created_at'], 'M d')); ?> · <?php echo status_badge($l['status']); ?></span>
+                    </li>
+                <?php endforeach; ?>
+                </ul>
+            <?php endif; ?>
+        </div></div>
     </div>
-    
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+    <div class="col-lg-5">
+        <div class="card"><div class="card-body">
+            <h2 class="h5 mb-3">Quick actions</h2>
+            <div class="d-flex flex-wrap gap-2">
+                <a class="btn btn-primary" href="<?php echo url('/admin/pages?action=new'); ?>"><i class="fas fa-file" aria-hidden="true"></i> <span>New page</span></a>
+                <a class="btn btn-primary" href="<?php echo url('/admin/blog?action=new'); ?>"><i class="fas fa-blog" aria-hidden="true"></i> <span>New post</span></a>
+                <a class="btn btn-primary" href="<?php echo url('/admin/services?action=new'); ?>"><i class="fas fa-briefcase" aria-hidden="true"></i> <span>New service</span></a>
+                <a class="btn btn-outline-primary" href="<?php echo url('/admin/settings'); ?>"><i class="fas fa-cog" aria-hidden="true"></i> <span>Settings</span></a>
+            </div>
+        </div></div>
+    </div>
+</div>
+<?php
+admin_layout_end();

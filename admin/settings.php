@@ -1,75 +1,60 @@
 <?php
 /**
- * admin/settings.php
- * Site Settings
+ * admin/settings.php — Site settings (reads/writes the `settings` table)
  */
+require_once __DIR__ . '/../includes/admin_layout.php';
+require_once __DIR__ . '/../config/database.php';
 
-require_once __DIR__ . '/../config/constants.php';
-require_once __DIR__ . '/../includes/Helper.php';
-require_once __DIR__ . '/../includes/Auth.php';
+admin_require_auth('manage_settings');
 
-if (!isAuthenticated() || !hasPermission('manage_settings')) {
-    redirect(url('/admin/login.php'));
+$db = Database::getInstance();
+
+if (isPost()) {
+    if (!Security::verifyCSRFToken(post('csrf_token', ''))) {
+        flash('danger', 'Invalid request token.');
+        redirect(url('/admin/settings'));
+    }
+    $allowed = ['site_name', 'site_description', 'site_email', 'site_phone', 'site_address',
+                'facebook_url', 'twitter_url', 'instagram_url', 'linkedin_url'];
+    foreach ($allowed as $k) {
+        $v = trim((string)post($k, ''));
+        $db->prepare('UPDATE settings SET `value` = :v WHERE `key` = :k');
+        $db->bind(':v', $v); $db->bind(':k', $k);
+        $db->execute();
+    }
+    flash('success', 'Settings updated.');
+    redirect(url('/admin/settings'));
 }
 
+$db->prepare('SELECT `key`,`value` FROM settings');
+$settings = [];
+foreach ($db->fetchAll() as $r) { $settings[$r['key']] = $r['value']; }
+
+admin_layout_start('Site Settings', 'settings');
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Settings - Admin</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-</head>
-<body style="background-color: #f8f9fa;">
-    <div class="container-fluid p-4">
-        <div class="row mb-4">
-            <div class="col">
-                <h1>Site Settings</h1>
-            </div>
-            <div class="col-auto">
-                <a href="<?php echo url('/admin'); ?>" class="btn btn-secondary">
-                    <i class="fas fa-arrow-left"></i> Back
-                </a>
-            </div>
-        </div>
-        
-        <div class="card">
-            <div class="card-body">
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle"></i> Settings management panel. Update your site configuration here.
-                </div>
-                
-                <form>
-                    <div class="mb-3">
-                        <label for="site_name" class="form-label">Site Name</label>
-                        <input type="text" class="form-control" id="site_name" name="site_name" value="Base Site">
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="site_description" class="form-label">Site Description</label>
-                        <textarea class="form-control" id="site_description" name="site_description" rows="3">Professional website template</textarea>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="site_email" class="form-label">Contact Email</label>
-                        <input type="email" class="form-control" id="site_email" name="site_email" value="info@example.com">
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="site_phone" class="form-label">Contact Phone</label>
-                        <input type="tel" class="form-control" id="site_phone" name="site_phone" value="+1 (555) 000-0000">
-                    </div>
-                    
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save"></i> Save Settings
-                    </button>
-                </form>
-            </div>
-        </div>
+<form method="POST" class="card card-body">
+    <?php echo Security::getCSRFField(); ?>
+    <?php
+    $fields = [
+        'site_name'        => ['Site name', 'text'],
+        'site_description' => ['Site description', 'textarea'],
+        'site_email'       => ['Contact email', 'email'],
+        'site_phone'       => ['Contact phone', 'tel'],
+        'site_address'     => ['Address', 'text'],
+        'facebook_url'     => ['Facebook URL', 'url'],
+        'twitter_url'      => ['Twitter URL', 'url'],
+        'instagram_url'    => ['Instagram URL', 'url'],
+        'linkedin_url'     => ['LinkedIn URL', 'url'],
+    ];
+    foreach ($fields as $k => [$label, $type]) {
+        admin_field($label, $k, $settings[$k] ?? '', $type);
+    }
+    ?>
+    <div>
+        <button class="btn btn-primary" type="submit">
+            <i class="fas fa-save" aria-hidden="true"></i> <span>Save settings</span>
+        </button>
     </div>
-    
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+</form>
+<?php
+admin_layout_end();

@@ -11,4 +11,4 @@ require_once __DIR__ . '/../includes/Auth.php';
 $auth = new Auth();
 $auth->logout();
 
-redirect(url('/admin/login.php'));
+redirect(url('/login'));
